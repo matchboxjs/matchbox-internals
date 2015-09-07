@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/matchboxjs/matchbox-internals/issues"
   },
-  "homepage": "https://github.com/matchboxjs/matchbox-internals#readme"
+  "homepage": "https://github.com/matchboxjs/matchbox-internals#readme",
+  "dependencies": {
+    "matchbox-util": "matchboxjs/matchbox-util"
+  }
 }

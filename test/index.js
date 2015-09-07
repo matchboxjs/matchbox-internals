@@ -1,4 +1,3 @@
-require("es6-shim")
 var chai = require("chai")
 var assert = chai.assert
 var internals = require("../index")

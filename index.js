@@ -1,19 +1,22 @@
-var extend = require("matchbox-util/extend")
 var object = require("matchbox-util/object")
 
-var constructors = new Set()
+var constructors = []
 
 module.exports = function internals(Class) {
+  if (~constructors.indexOf(Class)) {
+    return Class
+  }
+
+  constructors.push(Class)
+
   var prototype = Class.prototype
   var parents = Class.parents = []
   var setups = Class.setups = []
-  var statics = Class.statics = new Map()
+  var statics = Class.statics = {}
 
   object.defineGetter(Class, "statics", statics)
   object.defineGetter(Class, "setups", setups)
   object.defineGetter(Class, "parents", parents)
-
-  constructors.add(Class)
 
   /**
    * For setting up static functions, specially functions that access a closure.
@@ -30,7 +33,7 @@ module.exports = function internals(Class) {
    * For defining static functions that doesn't need a closure.
    * */
   Class.static = function (name, fn) {
-    statics.set(name, fn)
+    statics[name] = fn
     return Class
   }
 
@@ -44,10 +47,10 @@ module.exports = function internals(Class) {
     prototype = Class.prototype = Object.create(Base.prototype)
     Class.prototype.constructor = Class
 
-    if (constructors.has(Base)) {
+    if (~constructors.indexOf(Base)) {
       Base.parents.forEach(function (parent) { parents.push(parent) })
       Base.setups.forEach(function (setup) { setups.push(setup) })
-      Base.statics.forEach(function (name, fn) { Class.static(name, fn) })
+      object.for(Base.setups, function (name, fn) { Class.static(name, fn) })
       setups.forEach(function (setup) {
         Class.setup(setup, Base)
       })

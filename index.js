@@ -20,8 +20,8 @@ module.exports = function internals(Class) {
    * It's useful when inheriting from a class where a static function is accessing a closure.
    * This way those closures are always re-defined for the super class, when calling the  provided setup function.
    * */
-  Class.setup = function (fn) {
-    fn(Class)
+  Class.setup = function (fn, Base) {
+    fn(Class, Base)
     setups.push(fn)
     return Class
   }
@@ -43,18 +43,19 @@ module.exports = function internals(Class) {
   Class.inherit = function (Base) {
     prototype = Class.prototype = Object.create(Base.prototype)
     Class.prototype.constructor = Class
+
     if (constructors.has(Base)) {
-      parents = parents.concat(Base.parents)
-      setups = setups.concat(Base.setups)
-      extend(Class, Base)
-      //Base.statics.forEach(function (name, fn) {
-      //  Class.static(name, fn)
-      //})
+      Base.parents.forEach(function (parent) { parents.push(parent) })
+      Base.setups.forEach(function (setup) { setups.push(setup) })
+      Base.statics.forEach(function (name, fn) { Class.static(name, fn) })
       setups.forEach(function (setup) {
-        Class.setup(setup)
+        Class.setup(setup, Base)
       })
     }
+
+    parents.push(Base)
     Class.onCreate(Base)
+
     return Class
   }
 
@@ -85,7 +86,7 @@ module.exports = function internals(Class) {
       extensions.forEach(augment)
     }
     else {
-      augment()
+      augment(extensions)
     }
     return Class
   }

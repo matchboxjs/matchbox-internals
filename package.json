@@ -1,0 +1,22 @@
+{
+  "name": "matchbox-internals",
+  "version": "0.1.0",
+  "description": "Class extension utility",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matchboxjs/matchbox-internals.git"
+  },
+  "keywords": [
+    "matchbox"
+  ],
+  "author": "tunderdomb",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/matchboxjs/matchbox-internals/issues"
+  },
+  "homepage": "https://github.com/matchboxjs/matchbox-internals#readme"
+}

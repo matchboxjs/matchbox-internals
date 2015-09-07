@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/matchboxjs/matchbox-internals#readme",
   "dependencies": {
-    "matchbox-util": "matchboxjs/matchbox-util"
+    "matchbox-util": "^0.1.0"
   },
   "devDependencies": {
     "chai": "^3.2.0",

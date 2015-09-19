@@ -14,9 +14,9 @@ module.exports = function internals(Class) {
   var setups = Class.setups = []
   var statics = Class.statics = {}
 
-  object.defineGetter(Class, "statics", statics)
-  object.defineGetter(Class, "setups", setups)
-  object.defineGetter(Class, "parents", parents)
+  object.constant(Class, "statics", statics)
+  object.constant(Class, "setups", setups)
+  object.constant(Class, "parents", parents)
 
   /**
    * For setting up static functions, specially functions that access a closure.

@@ -1,6 +1,6 @@
 {
   "name": "matchbox-internals",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Class extension utility",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/matchboxjs/matchbox-internals#readme",
   "dependencies": {
-    "matchbox-util": "^0.2.1"
+    "matchbox-util": "^0.3.0"
   },
   "devDependencies": {
     "chai": "^3.2.0",

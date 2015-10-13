@@ -1,9 +1,10 @@
 var object = require("matchbox-util/object")
-var Lifecycle = require("./Lifecycle")
 
 var constructors = []
 var statics = []
 var setups = []
+var inclusions = []
+var augmentations = []
 
 function getRegistryItem (Class, registry) {
   var i = constructors.indexOf(Class)
@@ -11,9 +12,8 @@ function getRegistryItem (Class, registry) {
 }
 function setRegistryItem (Class, registry, item) {
   var i = constructors.indexOf(Class)
-  if (~i) {
-    registry[i] = item
-  }
+  if (~i) registry[i] = item
+  return item
 }
 
 module.exports = function internals(Class) {
@@ -22,15 +22,12 @@ module.exports = function internals(Class) {
   }
 
   constructors.push(Class)
-  setRegistryItem(Class, statics, {})
-  setRegistryItem(Class, setups, [])
+  var localStatics = setRegistryItem(Class, statics, {})
+  var localSetups = setRegistryItem(Class, setups, [])
+  var localInclusions = setRegistryItem(Class, inclusions, [])
+  var localAugmentations = setRegistryItem(Class, augmentations, [])
 
   var prototype = Class.prototype
-  var lifecycle = new Lifecycle()
-
-  lifecycle.state("create")
-
-  object.constant(Class, "lifecycle", lifecycle)
 
   // Constructor Management
 
@@ -46,7 +43,7 @@ module.exports = function internals(Class) {
    * */
   Class.setup = function (fn, Base) {
     fn(Class, Base)
-    getRegistryItem(Class, setups).push(fn)
+    localSetups.push(fn)
     return Class
   }
 
@@ -58,7 +55,7 @@ module.exports = function internals(Class) {
    * @return {*} Class
    * */
   Class.static = function (name, fn) {
-    getRegistryItem(Class, statics)[name] = fn
+    localStatics[name] = fn
     object.method(Class, name, fn)
     return Class
   }
@@ -89,12 +86,19 @@ module.exports = function internals(Class) {
     Class.prototype.constructor = Class
 
     if (~constructors.indexOf(Base)) {
-      lifecycle.inherit(Base.lifecycle)
       getRegistryItem(Base, setups).forEach(function (setup) { Class.setup(setup, Base) })
+      getRegistryItem(Base, augmentations).forEach(function (extension) {
+         if (!~localAugmentations.indexOf(extension)) {
+           localAugmentations.push(extension)
+         }
+      })
+      getRegistryItem(Base, inclusions).forEach(function (inclusion) {
+         if (!~localInclusions.indexOf(inclusion)) {
+           localInclusions.push(inclusion)
+         }
+      })
       object.in(getRegistryItem(Base, statics), function (name, fn) { Class.static(name, fn) })
     }
-
-    lifecycle.when("create", Base)
 
     return Class
   }
@@ -108,18 +112,28 @@ module.exports = function internals(Class) {
    * */
   Class.include = function (Other) {
     function include( Other ){
-      if ( typeof Other == "function" ) {
+      if ( typeof Other == "function" && !Class.includes(Other)) {
         Class.proto(Other.prototype)
-        lifecycle.when("create", Other)
+        localInclusions.push(Other)
       }
     }
-    if( Array.isArray(Other) ){
+    if (Array.isArray(Other) ){
       Other.forEach(include)
     }
     else {
       include(Other)
     }
     return Class
+  }
+
+  /**
+   * Checks if this class includes another
+   *
+   * @param {Function} Other
+   * @return {Boolean}
+   * */
+  Class.includes = function (Other) {
+    return !!~localInclusions.indexOf(Other)
   }
 
   /**
@@ -132,14 +146,25 @@ module.exports = function internals(Class) {
    * */
   Class.augment = function (extensions) {
     function augment(extension) {
-      if (typeof extension == "function")
+      if (typeof extension == "function" && !Class.augments(extension))
         extension.call(Class.prototype, Class)
+      localAugmentations.push(extension)
     }
     if (Array.isArray(extensions))
       extensions.forEach(augment)
     else
       augment(extensions)
     return Class
+  }
+
+  /**
+   * Checks if this extension augments this class
+   *
+   * @param {Function} extension
+   * @return {Boolean}
+   * */
+  Class.augments = function (extension) {
+    return !!~localAugmentations.indexOf(extension)
   }
 
   // Prototype Management

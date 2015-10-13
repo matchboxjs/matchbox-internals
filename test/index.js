@@ -184,7 +184,19 @@ describe("internals", function () {
     })
   })
   describe(".include()", function () {
-    /* include is verified by .proto() and .onCreate() */
+
+    testClass("can check includes", function (A, B) {
+      internals(A)
+      A.include(B)
+      assert.isTrue(A.includes(B))
+    })
+    testClass("can check inherited includes", function (A, B, C) {
+      internals(A)
+      A.include(B)
+      internals(C)
+      C.inherit(A)
+      assert.isTrue(C.includes(B))
+    })
   })
   describe(".augment()", function () {
 
@@ -194,141 +206,7 @@ describe("internals", function () {
       A.augment(mixin)
       var a = new A()
       assert.equal(a.testMethod, mixin.testMethod)
-    })
-  })
-
-  describe("Lifecycle", function () {
-
-    testClass("adds a lifecycle callback", function (A) {
-      internals(A)
-      function onCreate () {}
-      A.lifecycle.when("create", onCreate)
-      assert.equal(A.lifecycle.callbacks.create[0], onCreate)
-    })
-
-    testClass("doesn't adds the same callback twice", function (A) {
-      internals(A)
-      function onCreate () {}
-      A.lifecycle.when("create", onCreate)
-      assert.lengthOf(A.lifecycle.callbacks.create, 1)
-      A.lifecycle.when("create", onCreate)
-      assert.lengthOf(A.lifecycle.callbacks.create, 1)
-    })
-
-    testClass("adds a lifecycle callback to the end of the list", function (A) {
-      internals(A)
-      function onCreate () {}
-      function onCreate2 () {}
-      A.lifecycle.when("create", onCreate)
-      A.lifecycle.when("create", onCreate2)
-      assert.lengthOf(A.lifecycle.callbacks.create, 2)
-      assert.equal(A.lifecycle.callbacks.create[0], onCreate)
-      assert.equal(A.lifecycle.callbacks.create[1], onCreate2)
-    })
-
-    //testClass("adds a lifecycle callback to the beginning of the list", function (A) {
-    //  internals(A)
-    //  function onCreate () {}
-    //  function onCreate2 () {}
-    //  A.lifecycle.when("create", onCreate)
-    //  A.lifecycle.before("create", onCreate2)
-    //  assert.lengthOf(A.lifecycle.callbacks.create, 2)
-    //  assert.equal(A.lifecycle.callbacks.create[0], onCreate2)
-    //  assert.equal(A.lifecycle.callbacks.create[1], onCreate)
-    //})
-
-    testClass("registers a lifecycle method", function (A) {
-      internals(A)
-      function onCreate () {}
-      A.lifecycle.when("create", onCreate)
-      assert.isFunction(A.lifecycle.create)
-    })
-
-    //testClass("runs a lifecycle callback on an instance", function (Class) {
-    //  internals(Class)
-    //  var called = false
-    //  Class.lifecycle.when("create", function () { called = true })
-    //  var a = new Class()
-    //  Class.lifecycle.run("create", a)
-    //  assert.isTrue(called)
-    //})
-
-    testClass("can be invoked with the registered lifecycle method", function (Class) {
-      internals(Class)
-      var called = false
-      Class.lifecycle.when("create", function () { called = true })
-      var a = new Class()
-      Class.lifecycle.create(a)
-      assert.isTrue(called)
-    })
-
-    testClass("calls all lifecycle callbacks in sequence", function (A) {
-      internals(A)
-      var callbacks = []
-      var callIndex = []
-
-      function addOnCreate () {
-        function onCreate () { callIndex[i] = i }
-        callbacks.push(onCreate)
-        var i = callIndex.push(false) - 1
-        A.lifecycle.when("create", onCreate)
-      }
-      addOnCreate()
-      addOnCreate()
-      addOnCreate()
-      addOnCreate()
-      var a = new A()
-      A.lifecycle.create(a)
-      callIndex.forEach(function (index, i) {
-        assert.equal(index, i)
-      })
-    })
-
-    testClass("calls included callbacks", function () {
-      function Class() { called = true }
-      function Extension () {}
-      internals(Extension)
-      Extension.include(Class)
-      var called = false
-      var b = new Extension()
-      Extension.lifecycle.create(b)
-      assert.isTrue(called)
-    })
-
-    testClass("included callbacks run before base", function () {
-      function Class() { called = true }
-      function Extension () {}
-      internals(Extension)
-      Extension.include(Class)
-      var called = false
-      var b = new Extension()
-      Extension.lifecycle.create(b)
-      assert.isTrue(called)
-    })
-
-    testClass("super inherits lifecycle callbacks", function (Base, Super) {
-      internals(Base)
-      internals(Super)
-      function onCreate () {}
-      Base.lifecycle.when("create", onCreate)
-      Super.inherit(Base)
-      assert.equal(Super.lifecycle.callbacks.create[0], onCreate)
-    })
-
-    testClass("calls inherited constructors", function () {
-      var baseCalled = false
-      var superCalled = false
-      function Base () { baseCalled = true }
-      function Super () {
-        Super.lifecycle.create(instance)
-        superCalled = true
-      }
-      internals(Base)
-      internals(Super)
-      Super.inherit(Base)
-      var instance = new Super()
-      assert.isTrue(baseCalled)
-      assert.isTrue(superCalled)
+      assert.isTrue(A.augments(mixin))
     })
   })
 
